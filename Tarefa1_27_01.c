@@ -26,6 +26,7 @@ void debounce_button(uint gpio, absolute_time_t *last_time, volatile bool *butto
 void display_number(uint8_t number, PIO pio, uint sm);
 void piscar_led_vermelho();
 
+// Converte valores de cor RGB (0 a 1) em um formato de 32 bits (0xGGRRBB00)
 uint32_t rgb_color(double r, double g, double b) {
     unsigned char R = r * 255;
     unsigned char G = g * 255;
@@ -33,6 +34,7 @@ uint32_t rgb_color(double r, double g, double b) {
     return (G << 24) | (R << 16) | (B << 8);
 }
 
+// Faz o LED vermelho piscar a cada 200 ms (5 vezes por segundo)
 void piscar_led_vermelho() {
     static absolute_time_t last_toggle_time = 0;
     static bool led_state = false;
@@ -44,6 +46,7 @@ void piscar_led_vermelho() {
     }
 }
 
+// Manipula interrupções dos botões A e B
 void gpio_irq_handler(uint gpio, uint32_t events) {
     if (gpio == BUTTON_A_PIN) {
         debounce_button(BUTTON_A_PIN, &last_button_a_time, &button_a_pressed);
@@ -52,6 +55,7 @@ void gpio_irq_handler(uint gpio, uint32_t events) {
     }
 }
 
+// Implementa debounce para evitar leituras falsas dos botões
 void debounce_button(uint gpio, absolute_time_t *last_time, volatile bool *button_pressed) {
     absolute_time_t current_time = get_absolute_time();
     if (absolute_time_diff_us(*last_time, current_time) >= 200000) {
@@ -60,6 +64,7 @@ void debounce_button(uint gpio, absolute_time_t *last_time, volatile bool *butto
     }
 }
 
+// Exibe um número na matriz de LEDs WS2812
 void display_number(uint8_t number, PIO pio, uint sm) {
     const uint32_t timer_frames[10][25] = {
         {0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0},
@@ -80,6 +85,7 @@ void display_number(uint8_t number, PIO pio, uint sm) {
     }
 }
 
+// Função principal: configura hardware e executa o loop principal
 int main() {
     stdio_init_all();
     gpio_init(LED_RED_PIN);
@@ -97,6 +103,7 @@ int main() {
     uint sm = pio_claim_unused_sm(pio, true);
     pio_matrix_program_init(pio, sm, offset, MATRIX_PIN);
 
+    // Loop principal aumenta ou reduz o numero em 1 de acordo com o botão pressionado 
     while (true) {
         piscar_led_vermelho();
         if (button_a_pressed) {
